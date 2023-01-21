@@ -9,6 +9,9 @@ from customtkinter import filedialog
 import qrcode
 import pytesseract
 import cv2
+import requests
+
+
 
 
 
@@ -58,6 +61,8 @@ class Maincard(ctk.CTkFrame):
     bd=0,
     font=('calibri', 20, 'bold'))
         self.basic_info_label.pack()
+
+        
         
         
     def showcard(self): 
@@ -80,21 +85,24 @@ class Maincard(ctk.CTkFrame):
             self.basic_info_label["text"] = self.final_text
 
         
-        qrcode.make(f'https://codefest23.netlify.app/?data={self.currentEmail}').save(f"{self.currentEmail}.png")
-        self.qrImage = tk.PhotoImage(file = f"{self.currentEmail}.png")
+        
 
         if(self.times == 0):
+            qrcode.make(f'https://codefest23.netlify.app/?data={self.currentEmail}').save(f"{self.currentEmail}.png")
+            self.qrImage = tk.PhotoImage(file = f"{self.currentEmail}.png")
             self.qrLabel = tk.Label(self, image = self.qrImage)
             self.qrLabel.pack()
-            self.times == 1
-        
-        
+            self.times = 1
 
-        self.editBtn = ctk.CTkButton(self, text = "Edit Card", command = self.editCard)
-        self.editBtn.pack()
+            self.editBtn = ctk.CTkButton(self, text = "Edit Card", command = self.editCard)
+            self.editBtn.pack()
 
-        self.OCRBtn = ctk.CTkButton(self, text = "Scan Document", command = self.OCRCard)
-        self.OCRBtn.pack()
+            self.OCRBtn = ctk.CTkButton(self, text = "Scan Document", command = self.OCRCard)
+            self.OCRBtn.pack()
+            
+
+
+        
 
     def editCard(self):
         self.container.editcard.tkraise()
@@ -141,19 +149,32 @@ class Homepage(ctk.CTkFrame):
         self.currentEmail = ""
         self.container =  container
         self.pfpImage = self.container.pfpImage
+        self.count = 0
         self.pfpBtn = tk.Button(self, bg = "white", border = 0, width = 100, height = 100, image = self.pfpImage)
         self.pfpBtn.place(x = 10, y = 10)
         self.company_name = ctk.CTkLabel(self, text= "MEDICARD")
         self.company_name.pack()
         self.li = []
         self.cardBtn = tk.Button(self, text = "",bg='#1e6ca4',
+        
     fg='#ffffff',
     bd=0,
     font=('calibri', 20, 'bold'), command = self.showmaincard)
         self.cardBtn.pack()
 
-        self.showcard()
+        
 
+        self.showcard()
+    def get_ip(self):
+        response = requests.get('https://api64.ipify.org/?format=json').json()
+        return response["ip"]
+    def get_location(self):
+        ip_address = self.get_ip()
+        response = requests.get(f'https://ipapi.co/{ip_address}/json/').json()
+        location_data = {
+            "country": response.get("country_name")
+        }
+        return location_data['country']
     def showmaincard(self):
         self.container.maincard.showcard()
         self.container.maincard.tkraise()
@@ -178,6 +199,19 @@ class Homepage(ctk.CTkFrame):
             self.cardBtn["text"] = self.final_text
             if(i.lower() == "weight"):
                 break
+
+        if(self.count !=  0):
+            if self.get_location() == 'United States':
+                if db.reference('/').child('Sakra Hospital').child(f'{self.currentEmail}').get() == None:
+                    print(self.li)
+                    db.reference('/').child('Sakra Hospital').child(f'{self.currentEmail}').set({
+                        'data': self.li
+                    })
+                else:
+                    db.reference('/').child('Sakra Hospital').child(f'{self.currentEmail}').update({
+                        'data': self.li
+                    })
+        self.count = 1
 
 class OCR(ctk.CTkFrame):
     def __init__(self, container):
