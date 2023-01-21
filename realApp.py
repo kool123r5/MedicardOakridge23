@@ -10,6 +10,9 @@ import qrcode
 import pytesseract
 import cv2
 import requests
+import webbrowser
+from gingerit.gingerit import GingerIt
+import language_tool_python
 
 
 #todo
@@ -61,14 +64,15 @@ class Maincard(ctk.CTkFrame):
         self.times = 0
         self.currentEmail = ""
         self.container = container
+
+
         self.basic_info_label = tk.Label(self, text = "",bg='#1e6ca4',
     fg='#ffffff',
     bd=0,
     font=('calibri', 20, 'bold'))
-        self.basic_info_label.pack(fill = "x")
+        self.basic_info_label.place(relx = 0.5, rely = 0.3, anchor = tk.CENTER)
 
 
-        
         
         
     def showcard(self): 
@@ -97,17 +101,18 @@ class Maincard(ctk.CTkFrame):
             qrcode.make(f'https://codefest23.netlify.app/?data={self.currentEmail}').save(f"{self.currentEmail}.png")
             self.qrImage = tk.PhotoImage(file = f"{self.currentEmail}.png")
             self.qrLabel = tk.Label(self, image = self.qrImage)
-            self.qrLabel.pack()
+            
+            self.qrLabel.place(relx = 0.1, rely = 0.9, anchor = tk.CENTER)
             self.times = 1
 
             self.editBtn = ctk.CTkButton(self, text = "Edit Card", command = self.editCard)
-            self.editBtn.pack()
+            self.editBtn.place(relx = 0.8, rely = 0.05, anchor = tk.CENTER)
 
             self.OCRBtn = ctk.CTkButton(self, text = "Scan Document", command = self.OCRCard)
-            self.OCRBtn.pack()
+            self.OCRBtn.place(relx = 0.2, rely = 0.05, anchor = tk.CENTER)
 
             self.goback = ctk.CTkButton(self, text = "Go Back", command = self.goback)
-            self.goback.pack()
+            self.goback.place(relx = 0.8, rely = 0.95, anchor = tk.CENTER)
             
 
 
@@ -118,7 +123,6 @@ class Maincard(ctk.CTkFrame):
         self.container.ocr.tkraise()
     
     def goback(self):
-        self.container.homepage.showcard()
         self.container.homepage.tkraise()
         
 
@@ -126,21 +130,34 @@ class Editcard(ctk.CTkFrame):
     def __init__(self, container):
         super().__init__(container)
         self.container = container
-        self.enterTopic = ctk.CTkEntry(master = self, placeholder_text = "New data topic")
+
+        
+
+        label = ctk.CTkLabel(self, text = "Add or Edit Info", font = ("Comic Sans MS", 35, "bold"))
+        label.place(relx = 0.5, rely = 0.1, anchor = tk.CENTER)
+
+        self.enterTopic = ctk.CTkEntry(master = self, placeholder_text = "New data topic", font = ("Helvatica", 20))
+        self.enterTopic.place(relx = 0.5, rely = 0.3, anchor = tk.CENTER, width = 200)
+
         self.enterData = ctk.CTkEntry(master=self, placeholder_text="New Data.")
+        self.enterData.place(relx = 0.5, rely = 0.4, anchor = tk.CENTER, width = 350)
+
         self.addBtn = ctk.CTkButton(self, text = "Add", command = self.add)
-        self.enterTopic.pack()
-        self.enterData.pack()
-        self.addBtn.pack()
+        self.addBtn.place(relx = 0.5, rely = 0.7, anchor = tk.CENTER)
+
+
         self.currentEmail = ''
 
         self.gobackBtn = ctk.CTkButton(self, text = "Go Back", command = self.goback)
-        self.gobackBtn.pack()
+        self.gobackBtn.place(relx = 0.5, rely = 0.8, anchor = tk.CENTER)
 
     def add(self):
         self.topic = self.enterTopic.get()
         self.data = self.enterData.get()
         ref.child(f'{self.currentEmail}').update({f'{self.topic}': f'{self.data}'})
+        
+
+
 
     def goback(self):
         self.container.maincard.showcard()
@@ -166,7 +183,7 @@ class Homepage(ctk.CTkFrame):
         self.company_name.place(relx = 0.5, rely = 0.1, anchor = tk.CENTER)
 
         self.cardBtn = ctk.CTkButton(self, text = "Show Main Card", command = self.showmaincard, font=('Helvetica', 30))
-        self.cardBtn.place(relx = 0.5, rely = 0.28, anchor = tk.CENTER)
+        self.cardBtn.place(relx = 0.5, rely = 0.25, anchor = tk.CENTER)
 
         self.dataLabel = tk.Label(self, text = "", bg = "#1e6ca4", fg = "white", font=('Helvetica', 15), padx = 20, pady = 20)
         self.dataLabel.place(relx = 0.5, rely = 0.4, anchor = tk.CENTER)
@@ -179,10 +196,13 @@ class Homepage(ctk.CTkFrame):
         self.open_calendarBtn.place(relx = 0.2, rely = 0.6, anchor = tk.CENTER)
 
     def open_calendar(self):
-        pass    
+        new = 1
+        url = "https://medicard-calender-1.netlify.app/"    
+        webbrowser.open(url,new=new)
 
     def showmaincard(self):
-        pass
+        self.container.maincard.showcard()
+        self.container.maincard.tkraise()
 
     def showcard(self):
         self.dataLabel["text"] = ""
@@ -213,17 +233,27 @@ class OCR(ctk.CTkFrame):
         self.container = container
         self.currentEmail = ""
 
-        self.enterTopic = ctk.CTkEntry(master = self, placeholder_text = "New data topic")
-        self.enterTopic.pack()
+        self.label = ctk.CTkLabel(self, text = "Scan Prescriptions", font = ("Comic Sans MS", 35, "bold"))
+        self.label.place(relx = 0.5, rely = 0.1, anchor = tk.CENTER)
 
-        self.button = ctk.CTkButton(self, text = "upload file", command = self.upload)
-        self.button.pack()
+        self.enterTopic = ctk.CTkEntry(master = self, placeholder_text = "New data topic")
+        self.enterTopic.place(relx = 0.5, rely = 0.3, anchor = tk.CENTER, width = 300)
+
+
+        self.scanImg = ctk.CTkButton(self, text = "Take Picture", command = self.uploadPicture)
+        self.scanImg.place(relx = 0.5, rely = 0.5, anchor = tk.CENTER)
+
+        self.uploadImg = ctk.CTkButton(self, text = "Upload File", command = self.upload)
+        self.uploadImg.place(relx = 0.5, rely = 0.6, anchor = tk.CENTER)
 
         self.addBtn = ctk.CTkButton(self, text = "Add", command = self.add)
-        self.addBtn.pack()
+        self.addBtn.place(relx = 0.5, rely = 0.8, anchor = tk.CENTER)
 
         self.gobackBtn = ctk.CTkButton(self, text = "Go Back", command = self.goback)
-        self.gobackBtn.pack()
+        self.gobackBtn.place(relx = 0.5, rely = 0.9, anchor = tk.CENTER)
+
+    def uploadPicture(self):
+        pass
 
     def upload(self):
         
