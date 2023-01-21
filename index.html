@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Viewing Data QR</title>
+        <script src="https://www.gstatic.com/firebasejs/8.6.7/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.6.7/firebase-database.js"></script>
+        <script>
+            const firebaseConfig = {
+                apiKey: "AIzaSyB5f7IcI8_CNxQJ_eaI4w04NGi37qAbvFw",
+                authDomain: "oakridgecodefest2023.firebaseapp.com",
+                databaseURL: "https://oakridgecodefest2023-default-rtdb.firebaseio.com",
+                projectId: "oakridgecodefest2023",
+                storageBucket: "oakridgecodefest2023.appspot.com",
+                messagingSenderId: "889997791555",
+                appId: "1:889997791555:web:d9e6227bd1d66d49895ff6",
+            };
+
+            const app = firebase.initializeApp(firebaseConfig);
+        </script>
+    </head>
+    <body>
+        <p id="age"></p>
+        <p id="allergies"></p>
+        <p id="blood"></p>
+        <p id="height"></p>
+        <p id="name"></p>
+        <p id="phobias"></p>
+        <p id="vax"></p>
+        <p id="weight"></p>
+    </body>
+    <script defer>
+        const dataUser = new Proxy(new URLSearchParams(window.location.search), {
+            get: (searchParams, prop) => searchParams.get(prop),
+        }).data;
+        let db = firebase.database();
+        db.ref()
+            .child(`${dataUser}`)
+            .get()
+            .then((snapshot) => {
+                console.log(snapshot.val());
+                let dataVal = snapshot.val();
+                document.getElementById("name").innerText = `Name of the patient is ${dataVal.Name}`;
+                document.getElementById("age").innerText = `Age of the patient is ${dataVal.Age}`;
+                document.getElementById("blood").innerText = `Blood type of the patient is ${dataVal["Blood-type"]}`;
+                document.getElementById("allergies").innerText = `Allergies of the patient are ${dataVal.Allergies}`;
+                document.getElementById("height").innerText = `Height of the patient is ${dataVal.Height}`;
+                document.getElementById("phobias").innerText = `Phobias of the patient are ${dataVal.Phobias}`;
+                document.getElementById(
+                    "vax"
+                ).innerText = `Prior vaccinations of the patient are ${dataVal["Prior Vaccinations"]}`;
+                document.getElementById("weight").innerText = `Weight of the patient is ${dataVal.Weight}`;
+            });
+    </script>
+</html>
