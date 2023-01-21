@@ -397,6 +397,8 @@ table {
 
 #make-note #add-post-it {
 	border: 3px solid #222;
+	background-color: #0000ff;
+	color: white;
 }
 
 #make-note #add-post-it:hover {
@@ -414,6 +416,20 @@ table {
 	color: #d71c1f;
 	border: 3px solid #d71c1f;
 	background-color: white;
+}
+
+
+#make-note #alert {
+	color: white;
+	border: 3px solid #d71c1f;
+	background-color: #d71c1f;
+}
+
+#make-note #alert:hover {
+	color: #d71c1f;
+	border: 3px solid black;
+	background-color: black;
+	color: white
 }
 
 @media (orientation: portrait) {
