@@ -237,7 +237,7 @@ class OCR(ctk.CTkFrame):
         self.label.place(relx = 0.5, rely = 0.1, anchor = tk.CENTER)
 
         self.enterTopic = ctk.CTkEntry(master = self, placeholder_text = "New data topic")
-        self.enterTopic.place(relx = 0.5, rely = 0.3, anchor = tk.CENTER, width = 300)
+        self.enterTopic.place(relx = 0.5, rely = 0.2, anchor = tk.CENTER, width = 300)
 
 
         self.scanImg = ctk.CTkButton(self, text = "Take Picture", command = self.uploadPicture)
@@ -251,9 +251,48 @@ class OCR(ctk.CTkFrame):
 
         self.gobackBtn = ctk.CTkButton(self, text = "Go Back", command = self.goback)
         self.gobackBtn.place(relx = 0.5, rely = 0.9, anchor = tk.CENTER)
+    def get_grayscale(self, image):
+        return cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+    def remove_noise(self, image):
+        return cv2.medianBlur(image, 5)
+
+    def thresholding(self, image):
+        return cv2.threshold(image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)[1]
 
     def uploadPicture(self):
-        pass
+        img_counter = 0
+        cam = cv2.VideoCapture(0)
+
+        while img_counter != 1:
+            success, frame = cam.read()
+            cv2.imshow("Image", frame)
+            k = cv2.waitKey(1)
+
+            if k % 256 == 32:
+                img_name = 'img2.png'
+                cv2.imwrite(img_name, frame)
+                img_counter += 1
+
+        img2 = cv2.imread("img2.png")
+        img = cv2.resize(img2, (0, 0), fx=10, fy=10)
+
+        img = self.get_grayscale(img)
+        img = self.thresholding(img)
+        img = self.remove_noise(img)
+
+        text = pytesseract.image_to_string(img)
+        print(text)
+        my_tool = language_tool_python.LanguageTool('en-US')
+        correct_text = my_tool.correct(text)
+        print("###################################")
+        print(correct_text)
+
+        cv2.destroyAllWindows()
+
+        self.data = correct_text
+        self.label = ctk.CTkLabel(self, text = self.data)
+        self.label.place(relx = 0.5, rely = 0.3, anchor = tk.CENTER)
 
     def upload(self):
         
@@ -262,7 +301,7 @@ class OCR(ctk.CTkFrame):
         self.data = pytesseract.image_to_string(self.image)
 
         self.label = ctk.CTkLabel(self, text = self.data)
-        self.label.pack()
+        self.label.place(relx = 0.5, rely = 0.3, anchor = tk.CENTER)
 
         
 
