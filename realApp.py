@@ -70,7 +70,7 @@ class Maincard(ctk.CTkFrame):
     fg='#ffffff',
     bd=0,
     font=('calibri', 20, 'bold'))
-        self.basic_info_label.place(relx = 0.5, rely = 0.3, anchor = tk.CENTER)
+        self.basic_info_label.place(relx = 0.5, rely = 0.5, anchor = tk.CENTER)
 
 
         
@@ -98,8 +98,14 @@ class Maincard(ctk.CTkFrame):
         
 
         if(self.times == 0):
+            
             qrcode.make(f'https://codefest23.netlify.app/?data={self.currentEmail}').save(f"{self.currentEmail}.png")
-            self.qrImage = tk.PhotoImage(file = f"{self.currentEmail}.png")
+            
+            image = Image.open(f"{self.currentEmail}.png")
+            img = image.resize((100, 100))
+            self.qrImage = ImageTk.PhotoImage(img)
+
+            
             self.qrLabel = tk.Label(self, image = self.qrImage)
             
             self.qrLabel.place(relx = 0.1, rely = 0.9, anchor = tk.CENTER)
@@ -172,6 +178,7 @@ class Homepage(ctk.CTkFrame):
     def __init__(self, container):
         super().__init__(container)
         self.container =  container
+        self.count = 0
         self.text = ""
         self.li = []
 
@@ -195,6 +202,18 @@ class Homepage(ctk.CTkFrame):
         self.open_calendarBtn = ctk.CTkButton(self, text = "Open Calendar", command = self.open_calendar, font=('Helvetica', 20))
         self.open_calendarBtn.place(relx = 0.2, rely = 0.6, anchor = tk.CENTER)
 
+    def get_ip(self):
+        response = requests.get('https://api64.ipify.org/?format=json').json()
+        return response["ip"]
+    def get_location(self):
+        ip_address = self.get_ip()
+        response = requests.get(f'https://ipapi.co/{ip_address}/json/').json()
+        location_data = {
+            "country": response.get("country_name")
+        }
+        return location_data['country']
+
+
     def open_calendar(self):
         new = 1
         url = "https://medicard-calender-1.netlify.app/"    
@@ -207,6 +226,7 @@ class Homepage(ctk.CTkFrame):
     def showcard(self):
         self.dataLabel["text"] = ""
         data = ref.get()
+        
         for key, value in data.items():
             if(key == self.currentEmail):
                 self.li = value
@@ -218,8 +238,19 @@ class Homepage(ctk.CTkFrame):
                 self.text = self.text + f"height: {self.li[i]} cm"
             elif(i.lower() == "weight"):
                 self.text = self.text + f"\nweight: {self.li[i]} kg"
-        
+
         self.dataLabel["text"] = self.text
+
+    def update_place(self):
+        if self.get_location() == 'India': #United States
+            if db.reference('/').child('Sakra Hospital').child(f'{self.currentEmail}').get() == None:
+                db.reference('/').child('Sakra Hospital').child(f'{self.currentEmail}').set({
+                    'data': self.li
+                })
+            else:
+                db.reference('/').child('Sakra Hospital').child(f'{self.currentEmail}').update({
+                    'data': self.li
+                })
 
     def open_schedule(self):
         pass
@@ -237,14 +268,14 @@ class OCR(ctk.CTkFrame):
         self.label.place(relx = 0.5, rely = 0.1, anchor = tk.CENTER)
 
         self.enterTopic = ctk.CTkEntry(master = self, placeholder_text = "New data topic")
-        self.enterTopic.place(relx = 0.5, rely = 0.2, anchor = tk.CENTER, width = 300)
+        self.enterTopic.place(relx = 0.5, rely = 0.5, anchor = tk.CENTER, width = 300)
 
 
         self.scanImg = ctk.CTkButton(self, text = "Take Picture", command = self.uploadPicture)
-        self.scanImg.place(relx = 0.5, rely = 0.5, anchor = tk.CENTER)
+        self.scanImg.place(relx = 0.5, rely = 0.6, anchor = tk.CENTER)
 
         self.uploadImg = ctk.CTkButton(self, text = "Upload File", command = self.upload)
-        self.uploadImg.place(relx = 0.5, rely = 0.6, anchor = tk.CENTER)
+        self.uploadImg.place(relx = 0.5, rely = 0.7, anchor = tk.CENTER)
 
         self.addBtn = ctk.CTkButton(self, text = "Add", command = self.add)
         self.addBtn.place(relx = 0.5, rely = 0.8, anchor = tk.CENTER)
@@ -282,11 +313,8 @@ class OCR(ctk.CTkFrame):
         img = self.remove_noise(img)
 
         text = pytesseract.image_to_string(img)
-        print(text)
         my_tool = language_tool_python.LanguageTool('en-US')
         correct_text = my_tool.correct(text)
-        print("###################################")
-        print(correct_text)
 
         cv2.destroyAllWindows()
 
@@ -375,6 +403,7 @@ class LoginFrame(ctk.CTkFrame):
         self.container.homepage.showcard()
         self.container.editcard.currentEmail = self.currentEmail
         self.container.ocr.currentEmail = self.currentEmail
+        self.container.homepage.update_place()
     
 
 
