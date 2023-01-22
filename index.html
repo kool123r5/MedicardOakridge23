@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Viewing Data QR</title>
+        <script src="https://www.gstatic.com/firebasejs/8.6.7/firebase-app.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/8.6.7/firebase-database.js"></script>
+        <script src="style.css"></script>
+        <link rel="stylesheet" href="style.css" />
+        <script>
+            const firebaseConfig = {
+                apiKey: "AIzaSyB5f7IcI8_CNxQJ_eaI4w04NGi37qAbvFw",
+                authDomain: "oakridgecodefest2023.firebaseapp.com",
+                databaseURL: "https://oakridgecodefest2023-default-rtdb.firebaseio.com",
+                projectId: "oakridgecodefest2023",
+                storageBucket: "oakridgecodefest2023.appspot.com",
+                messagingSenderId: "889997791555",
+                appId: "1:889997791555:web:d9e6227bd1d66d49895ff6",
+            };
+
+            const app = firebase.initializeApp(firebaseConfig);
+        </script>
+    </head>
+    <body>
+        <div id="bodydiv"></div>
+    </body>
+    <script defer>
+        const dataUser = new Proxy(new URLSearchParams(window.location.search), {
+            get: (searchParams, prop) => searchParams.get(prop),
+        }).data;
+        let db = firebase.database();
+        db.ref()
+            .child(`${dataUser}`)
+            .get()
+            .then((snapshot) => {
+                let dataVal = snapshot.val();
+                console.log(Object.keys(dataVal));
+                for (let i = 0; i < Object.keys(dataVal).length; i++) {
+                    const para = document.createElement("p");
+                    para.innerText = `${Object.keys(dataVal)[i]}: ${dataVal[`${Object.keys(dataVal)[i]}`]}`;
+
+                    const element = document.getElementById("bodydiv");
+                    element.appendChild(para);
+                }
+            });
+    </script>
+</html>
